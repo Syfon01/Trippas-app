@@ -4,109 +4,70 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:tinsas_app/models/trip.dart';
 
-class DatabaseHelper {
+class TripDB{
+  TripDB._();
+  static final TripDB db = TripDB._();
 
-	static DatabaseHelper _databaseHelper;    // Singleton DatabaseHelper
-	static Database _database;                // Singleton Database
+  static Database _database;
 
-	String tripTable = 'trip_table';
-	String colId = 'id';
-	String colType = 'type';
-	String colDestination = 'destination';
-	String colDeparture= 'departure';
-	String colDepartDate = 'departDate';
-	String colArriveDate= 'arriveDate';
-	String colArriveTime= 'arriveTime';
-	String colDepartTime= 'departTime';
-	String colPriority = 'priority';
+  Future<Database> get database async{
+    if(_database != null)
+    return _database;
 
-	DatabaseHelper._createInstance(); // Named constructor to create instance of DatabaseHelper
+    _database = await initDB();
+    return _database;
+  }
 
-	factory DatabaseHelper() {
+  initDB() async{
+    Directory trDetDirectory = await getApplicationDocumentsDirectory();
+    String path = trDetDirectory.path + "TripDB.db"; 
+    return await openDatabase(path, version: 1, onOpen: (db){}, onCreate: 
+    (Database db, int version)async{
+      await db.execute("CREATE TABLE Trips ("
+      "id INTEGER PRIMARY KEY,"
+      "depature TEXT,"
+      "departDate TEXT,"
+      "departTime TEXT,"
+      "destination TEXT,"
+      "arriveDate TEXT,"
+      "arriveTime TEXT,"
+      "tripType TEXT"
+      ")");
+    });
+  }
 
-		if (_databaseHelper == null) {
-			_databaseHelper = DatabaseHelper._createInstance(); // This is executed only once, singleton object
-		}
-		return _databaseHelper;
-	}
+  newTrip(Trip newTrip)async{
+    final db = await database;
+    var res = await db.insert("Trips", newTrip.toJson());
+    return res;
+  }
 
-	Future<Database> get database async {
+  Future<List<Trip>>getTrips() async{
+    final db = await database;
+    var res = await db.rawQuery("SELECT * FROM Trips");
+    List<Trip> trList = res.isNotEmpty ? res.map((trs) => Trip.fromMap(trs)).toList() : [];
+    return trList;
+  }
 
-		if (_database == null) {
-			_database = await initializeDatabase();
-		}
-		return _database;
-	}
+  updateTrip(Trip updateTrip)async{
+    final db = await database;
+    var res = await db.update("Trips", updateTrip.toJson(), where: "id = ?", whereArgs: [updateTrip.id]);
+    return res;
+  }
 
-	Future<Database> initializeDatabase() async {
-		// Get the directory path for both Android and iOS to store database.
-		Directory directory = await getApplicationDocumentsDirectory();
-		String path = directory.path + 'trips.db';
+  deleteTrip(int id)async{
+    final db = await database;
+    var res = await db.delete("Trips", where: "id = ?", whereArgs: [id]);
+    await getTrips();
+    return res;
+  }
 
-		// Open/create the database at a given path
-		var tripsDatabase = await openDatabase(path, version: 1, onCreate: _createDb);
-		return tripsDatabase;
-	}
-
-	void _createDb(Database db, int newVersion) async {
-
-		await db.execute('CREATE TABLE $tripTable($colId INTEGER PRIMARY KEY AUTOINCREMENT, $colType TEXT, '
-				'$colDestination TEXT,$colDeparture TEXT, $colPriority INTEGER, $colDepartDate TEXT, $colArriveDate TEXT, $colDepartTime TEXT,$colArriveTime TEXT)');
-	}
-
-	// Fetch Operation: Get all note objects from database
-	Future<List<Map<String, dynamic>>> getTripMapList() async {
-		Database db = await this.database;
-
-//		var result = await db.rawQuery('SELECT * FROM $noteTable order by $colPriority ASC');
-		var result = await db.query(tripTable, orderBy: '$colPriority ASC');
-		return result;
-	}
-
-	// Insert Operation: Insert a Note object to database
-	Future<int> insertTrip(Trip trip) async {
-		Database db = await this.database;
-		var result = await db.insert(tripTable, trip.toMap());
-		return result;
-	}
-
-	// Update Operation: Update a Note object and save it to database
-	Future<int> updateTrip(Trip trip) async {
-		var db = await this.database;
-		var result = await db.update(tripTable, trip.toMap(), where: '$colId = ?', whereArgs: [trip.id]);
-		return result;
-	}
-
-	// Delete Operation: Delete a Note object from database
-	Future<int> deleteTrip(int id) async {
-		var db = await this.database;
-		int result = await db.rawDelete('DELETE FROM $tripTable WHERE $colId = $id');
-		return result;
-	}
-
-	// Get number of Note objects in database
-	Future<int> getCount() async {
-		Database db = await this.database;
-		List<Map<String, dynamic>> x = await db.rawQuery('SELECT COUNT (*) from $tripTable');
-		int result = Sqflite.firstIntValue(x);
-		return result;
-	}
-
-	// Get the 'Map List' [ List<Map> ] and convert it to 'Note List' [ List<Note> ]
-	Future<List<Trip>> getTripList() async {
-
-		var tripMapList = await getTripMapList(); // Get 'Map List' from database
-		int count = tripMapList.length;         // Count the number of map entries in db table
-
-		List<Trip> tripList = List<Trip>();
-		// For loop to create a 'Note List' from a 'Map List'
-		for (int i = 0; i < count; i++) {
-			tripList.add(Trip.fromMapObject(tripMapList[i]));
-		}
-
-		return tripList;
-	}
+  Future<int> getCount() async{
+    final db = await database;
+    var res = Sqflite.firstIntValue(
+      await db.rawQuery("select count (*) from Trips")
+    );
+    return res.toInt();
+  }
 
 }
-
-

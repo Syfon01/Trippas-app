@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:splashscreen/splashscreen.dart';
 import './screens/trip_list.dart';
-// import './screens/trip_details.dart';
+import './screens/trip_details.dart';
 
 
 
@@ -21,7 +21,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return new SplashScreen(
-      seconds: 5,
+      seconds: 10,
       navigateAfterSeconds: new AfterSplash(),
       title: new Text('Trippas',
         style: new TextStyle(
@@ -45,7 +45,11 @@ class AfterSplash extends StatelessWidget {
       theme: ThemeData(
         primarySwatch : Colors.blue
       ),
-      home: TripList(),
+      initialRoute: '/',
+      routes: {
+        '/':(context) => TripList(),
+        '/createTrip': (context) => TripDetails(),
+      },
     );
   }
 }

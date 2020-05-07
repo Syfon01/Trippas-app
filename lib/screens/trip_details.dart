@@ -1,296 +1,251 @@
 import 'package:flutter/material.dart';
 import 'package:tinsas_app/models/trip.dart';
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:tinsas_app/utils/database_helper.dart';
 
 class TripDetails extends StatefulWidget {
-  String appBarTitle;
-  Trip trip;
-  TripDetails(this.appBarTitle);
   @override
   _TripDetailsState createState() {
-    return _TripDetailsState(this.appBarTitle);
+    return _TripDetailsState();
   }
 }
 
 class _TripDetailsState extends State<TripDetails> {
-  DatabaseHelper databaseHelper = DatabaseHelper();
-  String appBarTitle;
-  Trip trip;
-  String result = '';
-  final _priorities = ['Business', 'Education', 'Health', 'Vacation'];
-  final double _formDistance = 5.0;
-  String priority = 'Business';
-  TextEditingController destinationController = TextEditingController();
-  TextEditingController departureController = TextEditingController();
-  TextEditingController arrivetimeController = TextEditingController();
-  TextEditingController departtimeController = TextEditingController();
-  TextEditingController arrivedateController = TextEditingController();
-  TextEditingController departdateController = TextEditingController();
+  _TripDetailsState();
+  final departureController = TextEditingController();
+  final destinationController = TextEditingController();
+  var _value;
+  String _departDate = "Enter Date";
+  String _departTime = "Enter Time";
+  String _arriveDate = "Enter Date";
+  String _arriveTime = "Enter Time";
 
-  _TripDetailsState(this.appBarTitle);
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    TextStyle textStyle = Theme.of(context).textTheme.title;
-    destinationController.text = trip.destination;
-    departureController.text = trip.departure;
-    arrivetimeController.text = trip.arrivetime;
-    departtimeController.text = trip.departtime;
-    arrivetimeController.text = trip.arrivedate;
-    departdateController.text = trip.departdate;
+    // TextStyle textStyle = Theme.of(context).textTheme.title;
+
     return Scaffold(
-      appBar: AppBar(title: Text(appBarTitle)),
-      body: Container(
-        padding: EdgeInsets.all(40.0),
-        child: Column(
-          children: <Widget>[
-            Padding(
-                padding:
-                    EdgeInsets.only(top: _formDistance, bottom: _formDistance),
-                child: TextField(
-                    controller: departureController,
-                    decoration: InputDecoration(
-                      labelText: 'Enter Departure',
-                      hintText: 'e.g Lagos',
-                      labelStyle: textStyle,
-                    ),
-                    keyboardType: TextInputType.text,
-                    onChanged: (value) {
-                      updateDeparture();
-                    })),
-            Padding(
-                padding:
-                    EdgeInsets.only(top: _formDistance, bottom: _formDistance),
-                child: Row(children: <Widget>[
-                  Expanded(
-                      child: TextField(
-                          controller: departdateController,
-                          decoration: InputDecoration(
-                            labelText: 'Enter Date',
-                            hintText: 'e.g Mon 23, April',
-                            labelStyle: textStyle,
-                          ),
-                          keyboardType: TextInputType.datetime,
-                          onChanged: (value) {
-                            updateDepartDate();
-                          })),
-                  Container(width: _formDistance * 5),
-                  Expanded(
-                      child: TextField(
-                          controller: departtimeController,
-                          decoration: InputDecoration(
-                            labelText: 'Enter Time',
-                            hintText: 'e.g 12:00',
-                            labelStyle: textStyle,
-                          ),
-                          keyboardType: TextInputType.datetime,
-                          onChanged: (value) {
-                            updateDepartTime();
-                          })),
-                ])),
-            Padding(
-                padding:
-                    EdgeInsets.only(top: _formDistance, bottom: _formDistance),
-                child: TextField(
-                    controller: destinationController,
-                    decoration: InputDecoration(
-                      labelText: 'Enter Destination',
-                      hintText: 'e.g Lagos',
-                      labelStyle: textStyle,
-                    ),
-                    keyboardType: TextInputType.text,
-                    onChanged: (value) {
-                      updateDestination();
-                    })),
-            Padding(
-                padding:
-                    EdgeInsets.only(top: _formDistance, bottom: _formDistance),
-                child: Row(children: <Widget>[
-                  Expanded(
-                      child: TextField(
-                          controller: arrivedateController,
-                          decoration: InputDecoration(
-                            labelText: 'Enter Date',
-                            hintText: 'e.g Mon 23, April',
-                            labelStyle: textStyle,
-                          ),
-                          keyboardType: TextInputType.datetime,
-                          onChanged: (value) {
-                            updateArriveDate();
-                          })),
-                  Container(width: _formDistance * 5),
-                  Expanded(
-                      child: TextField(
-                          controller: arrivetimeController,
-                          decoration: InputDecoration(
-                            labelText: 'Enter Time',
-                            hintText: 'e.g 12:00',
-                            labelStyle: textStyle,
-                          ),
-                          keyboardType: TextInputType.datetime,
-                          onChanged: (value) {
-                            updateArrriveTime();
-                          })),
-                ])),
-            Container(
-                padding:
-                    EdgeInsets.only(top: _formDistance, bottom: _formDistance),
-                width: 500,
-                child: DropdownButton<String>(
-                    items: _priorities.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    value: getPriorityAsString(trip.priority),
-                    onChanged: (valueSelectedByUser) {
-                      setState(() {
-                        debugPrint('User selected $valueSelectedByUser');
-                        updatePriorityAsInt(valueSelectedByUser);
-                      });
-                    })),
-            Container(
-                padding:
-                    EdgeInsets.only(top: _formDistance, bottom: _formDistance),
-                width: 500,
-                child: RaisedButton(
-                  color: Theme.of(context).primaryColorDark,
-                  textColor: Theme.of(context).primaryColorLight,
-                  onPressed: () {
-                    _save();
-                  },
-                  child: Text(
-                    'Add Trip',
-                    textScaleFactor: 1.5,
-                  ),
-                )),
-          ],
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          title: Text(
+            'Create a trip',
+            style: TextStyle(color: Colors.black),
+          ),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.black,
+            ),
+            onPressed: () {},
+          ),
         ),
-      ),
-    );
-  }
-
-  // void _onDropdownChanged(String value) {
-  //   setState(() {
-  //     this._priority = value;
-  //   });
-  // }
-
-  // Convert the String priority in the form of integer before saving it to Database
-  void updatePriorityAsInt(String value) {
-    switch (value) {
-      case 'Business':
-        trip.priority = 1;
-        break;
-      case 'Education':
-        trip.priority = 2;
-        break;
-      case 'Health':
-        trip.priority = 3;
-        break;
-      case 'Vacation':
-        trip.priority = 4;
-        break;
-    }
-  }
-
-  // Convert int priority to String priority and display it to user in DropDown
-  String getPriorityAsString(int value) {
-    String priority;
-    switch (value) {
-      case 1:
-        priority = _priorities[0]; 
-        break;
-      case 2:
-        priority = _priorities[1]; 
-        break;
-      case 3:
-        priority = _priorities[2]; 
-        break;
-      case 4:
-        priority = _priorities[4];
-        break;
-    }
-    return priority;
-  }
-
-  void moveToLastScreen() {
-    Navigator.pop(context, true);
-  }
-
-  // Update the title of Note object
-  void updateDestination() {
-    trip.destination = destinationController.text;
-  }
-
-  // Update the description of Note object
-  void updateDeparture() {
-    trip.departure = departureController.text;
-  }
-
-  void updateArrriveTime() {
-    trip.arriveTime = arrivetimeController.text;
-  }
-
-  void updateDepartTime() {
-    trip.departTime = departtimeController.text;
-  }
-
-  void updateArriveDate() {
-    trip.arriveDate = arrivedateController.text;
-  }
-
-  void updateDepartDate() {
-    trip.departDate = departdateController.text;
-  }
-
-  // Save data to database
-  void _save() async {
-    moveToLastScreen();
-
-    // trip.type = DateFormat.yMMMd().format(DateTime.now());
-    int result;
-    if (trip.id != null) {
-      // Case 1: Update operation
-      result = await databaseHelper.updateTrip(trip);
-    } else {
-      // Case 2: Insert Operation
-      result = await databaseHelper.insertTrip(trip);
-    }
-
-    if (result != 0) {
-      // Success
-      _showAlertDialog('Status', 'Trip Booked Successfully');
-    } else {
-      // Failure
-      _showAlertDialog('Status', 'Problem booking trip');
-    }
-  }
-
-  // void _delete() async {
-  //   moveToLastScreen();
-
-  //   // Case 1: If user is trying to delete the NEW NOTE i.e. he has come to
-  //   // the detail page by pressing the FAB of NoteList page.
-  //   if (trip.id == null) {
-  //     _showAlertDialog('Status', 'No Trip was deleted');
-  //     return;
-  //   }
-
-    // Case 2: User is trying to delete the old note that already has a valid ID.
-  //   int result = await helper.deleteTrip(trip.id);
-  //   if (result != 0) {
-  //     _showAlertDialog('Status', 'Trip Deleted Successfully');
-  //   } else {
-  //     _showAlertDialog('Status', 'Error Occured while Deleting Trip');
-  //   }
-  // }
-
-  void _showAlertDialog(String title, String message) {
-    AlertDialog alertDialog = AlertDialog(
-      title: Text(title),
-      content: Text(message),
-    );
-    showDialog(context: context, builder: (_) => alertDialog);
+        body: Container(
+            child: Padding(
+          padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
+          child: ListView(
+            children: <Widget>[
+              TextFormField(
+                keyboardAppearance: Brightness.dark,
+                keyboardType: TextInputType.text,
+                controller: departureController,
+                decoration: InputDecoration(
+                    hintText: 'Enter Depature',
+                    hintStyle: TextStyle(color: Colors.grey[500])),
+              ),
+              SizedBox(
+                height: 30,
+              ),
+              Row(
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: () {
+                      DatePicker.showDatePicker(context,
+                          theme: DatePickerTheme(containerHeight: 210.0),
+                          showTitleActions: true,
+                          minTime: DateTime(1900, 1, 1),
+                          maxTime: DateTime(2050, 12, 12), onConfirm: (date) {
+                        _departDate =
+                            '${date.year} - ${date.month} - ${date.day}';
+                        setState(() {});
+                      });
+                    },
+                    child: Container(
+                      width: 120,
+                      height: 60,
+                      child: Text(
+                        '$_departDate',
+                        style: TextStyle(color: Colors.grey[500]),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 60,
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      DatePicker.showTimePicker(context,
+                          theme: DatePickerTheme(
+                            containerHeight: 210.0,
+                          ),
+                          showTitleActions: true, onConfirm: (time) {
+                        _departTime =
+                            '${time.hour} : ${time.minute} : ${time.second}';
+                        setState(() {});
+                      }, currentTime: DateTime.now(), locale: LocaleType.en);
+                      setState(() {});
+                    },
+                    child: Container(
+                      width: 120,
+                      height: 60,
+                      child: Text(
+                        '$_departTime',
+                        style: TextStyle(color: Colors.grey[500]),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              TextFormField(
+                keyboardAppearance: Brightness.dark,
+                keyboardType: TextInputType.text,
+                controller: destinationController,
+                decoration: InputDecoration(
+                    hintText: 'Enter Destination',
+                    hintStyle: TextStyle(color: Colors.grey[500])),
+              ),
+              SizedBox(
+                height: 30,
+              ),
+              Row(
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: () {
+                      DatePicker.showDatePicker(context,
+                          theme: DatePickerTheme(containerHeight: 210.0),
+                          showTitleActions: true,
+                          minTime: DateTime(1900, 1, 1),
+                          maxTime: DateTime(2050, 12, 12), onConfirm: (date) {
+                        _arriveDate =
+                            '${date.year} - ${date.month} - ${date.day}';
+                        setState(() {});
+                      });
+                    },
+                    child: Container(
+                      width: 120,
+                      height: 60,
+                      child: Text('$_arriveDate',
+                          style: TextStyle(color: Colors.grey[500])),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 60,
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      DatePicker.showTimePicker(context,
+                          theme: DatePickerTheme(
+                            containerHeight: 210.0,
+                          ),
+                          showTitleActions: true, onConfirm: (time) {
+                        _arriveTime =
+                            '${time.hour} : ${time.minute} : ${time.second}';
+                        setState(() {});
+                      }, currentTime: DateTime.now(), locale: LocaleType.en);
+                      setState(() {});
+                    },
+                    child: Container(
+                      width: 120,
+                      height: 60,
+                      child: Text(
+                        '$_arriveTime',
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              DropdownButton<String>(
+                items: [
+                  DropdownMenuItem<String>(
+                    value: "1",
+                    child: Text('Business'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: "2",
+                    child: Text('Education'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: "3",
+                    child: Text('Health'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: "4",
+                    child: Text('Vacation'),
+                  ),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _value = value;
+                  });
+                },
+                hint: Text(
+                  'Trip Type',
+                  style: TextStyle(
+                    color: Colors.grey[500],
+                  ),
+                ),
+                value: _value,
+                isExpanded: true,
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              GestureDetector(
+                onTap: () {
+                  TripDB.db.newTrip(Trip(
+                      departure: departureController.text,
+                      departDate: _departDate,
+                      departTime: _departTime,
+                      destination: destinationController.text,
+                      arriveDate: _arriveDate,
+                      arriveTime: _arriveTime,
+                      tripType: _value));
+                  Navigator.pop(context);
+                },
+                child: Container(
+                  height: 60,
+                  width: 200,
+                  decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(10)),
+                  child: Center(
+                    child: Text(
+                      'Add Trip',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15),
+                    ),
+                  ),
+                ),
+              )
+            ],
+          ),
+        )));
   }
 }
